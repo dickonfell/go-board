@@ -40,10 +40,12 @@ export class BoardComponent implements OnInit {
   }
 
   placeStone(position: string, player: boolean) {
-    if (this.grid.get(position) === undefined) {
+    if (this.grid.get(position) === undefined && !this.isCaptured(position)) {
+      // place stone and swap current player
       this.grid.set(position, player);
       this.currentPlayer = !this.currentPlayer;
-      // check for captures
+
+      // check for captures and remove
       this.grid.forEach(
         (player, position) => {
           if (player !== undefined && this.isCaptured(position)) {
