@@ -1,10 +1,14 @@
 
-
-
 <div class="grid-container">
-    <div *ngFor="let i of grid" class="grid-item" (click)="placeStone()">
+    <div *ngFor="let item of grid | keyvalue" class="grid-item" (click)="placeStone(item.key, currentPlayer)">
         <div class="vertical-line">
-            <div class="horizontal-line"></div>
+            <div class="horizontal-line">
+                <div *ngIf="item.value !== undefined"
+                [ngClass]="{
+                    'black-stone': !item.value,
+                    'white-stone': item.value
+                 }"></div>
+            </div>
         </div>
     </div>
 </div>

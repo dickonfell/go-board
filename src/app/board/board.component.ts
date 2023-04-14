@@ -8,17 +8,29 @@ import { Component, OnInit } from '@angular/core';
 export class BoardComponent implements OnInit {
 
   gridSize: number = 9;
-  grid: number[];
+  grid: Map<string, boolean | undefined>;
+  
+  currentPlayer: boolean = false;
 
   constructor() {
   }
   
   ngOnInit(): void {
-    this.grid = Array(this.gridSize ** 2)
+    let startGrid = new Map();
+    for (let i = 0; i < this.gridSize; i++) {
+      for (let j = 0; j < this.gridSize; j++) {
+        const gridSquare = `${i},${j}`
+        startGrid.set(gridSquare, undefined);
+      }
+    }
+    this.grid = startGrid;
   }
 
-  placeStone() {
-    console.log('clicked square');
+  placeStone(position: string, player: boolean) {
+    if (this.grid.get(position) === undefined) {
+      this.grid.set(position, player);
+      this.currentPlayer = !this.currentPlayer;
+    }
   }
 
 }
