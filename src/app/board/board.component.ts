@@ -7,9 +7,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class BoardComponent implements OnInit {
 
-  constructor() { }
+  gridSize: number = 9;
+  grid: number[];
 
+  constructor() {
+  }
+  
   ngOnInit(): void {
+    this.grid = Array(this.gridSize ** 2)
+  }
+
+  placeStone() {
+    console.log('clicked square');
   }
 
 }
