@@ -10,12 +10,23 @@ export class BoardComponent implements OnInit {
   gridSize: number = 9;
   grid: Map<string, boolean | undefined>;
   
-  currentPlayer: boolean = false;
+  currentPlayer: boolean = false; // false for black, true for white
 
   constructor() {
   }
   
   ngOnInit(): void {
+    this.resetBoard();
+  }
+
+  placeStone(position: string, player: boolean) {
+    if (this.grid.get(position) === undefined) {
+      this.grid.set(position, player);
+      this.currentPlayer = !this.currentPlayer;
+    }
+  }
+
+  resetBoard() {
     let startGrid = new Map();
     for (let i = 0; i < this.gridSize; i++) {
       for (let j = 0; j < this.gridSize; j++) {
@@ -24,13 +35,7 @@ export class BoardComponent implements OnInit {
       }
     }
     this.grid = startGrid;
-  }
-
-  placeStone(position: string, player: boolean) {
-    if (this.grid.get(position) === undefined) {
-      this.grid.set(position, player);
-      this.currentPlayer = !this.currentPlayer;
-    }
+    this.currentPlayer = false;
   }
 
 }
