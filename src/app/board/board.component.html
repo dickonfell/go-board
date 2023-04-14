@@ -1,8 +1,8 @@
 
 <div class="grid-container">
     <div *ngFor="let item of grid | keyvalue" class="grid-item" (click)="placeStone(item.key, currentPlayer)">
-        <div class="vertical-line">
-            <div class="horizontal-line">
+        <div class="vertical-line" [ngStyle]="vlineStyle(item.key)">
+            <div class="horizontal-line" [ngStyle]="hlineStyle(item.key)">
                 <div *ngIf="item.value !== undefined" class="stone"
                 [ngStyle]="{'background': item.value ? 'white' : 'black'}"></div>
             </div>

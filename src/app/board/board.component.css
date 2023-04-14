@@ -25,13 +25,20 @@
 
 .vertical-line {
     height: 100%;
-    background: linear-gradient(#000, #000) no-repeat center/2px 100%;
+    width: 100%;
+    background-image: linear-gradient(#000, #000);
+    background-repeat: no-repeat;
+    /* background: linear-gradient(#000, #000) no-repeat center/2px 100%; */
   }
 
 .horizontal-line {
     width: 100%;
     height: 100%;
-    background: linear-gradient(#000, #000) no-repeat center/100% 2px;
+    background-image: linear-gradient(#000, #000);
+    background-size: 100% 2px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    /* background: linear-gradient(#000, #000) no-repeat center/100% 2px; */
 
     /* Needed for vertical centering of child */
     position: relative;

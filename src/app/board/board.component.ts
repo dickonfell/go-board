@@ -38,4 +38,49 @@ export class BoardComponent implements OnInit {
     this.currentPlayer = false;
   }
 
+  getCoords(position: string): {x: number, y: number} {
+    const coords = position.split(',');
+    return {x: Number(coords[0]), y: Number(coords[1])};
+  }
+
+  vlineStyle(position: string) {
+    const coords = this.getCoords(position);
+
+    let backgroundSize = '';
+    let backgroundPos = '';
+
+    if (coords.x === 0) {
+      backgroundSize = '2px 50%';
+      backgroundPos = 'bottom';
+    } else if (coords.x === this.gridSize - 1) {
+      backgroundSize = '2px 50%';
+      backgroundPos = 'top';
+    } else {
+      backgroundSize = '2px 100%';
+      backgroundPos = 'center';
+    }
+
+    return {'background-size':backgroundSize, 'background-position':backgroundPos};
+  }
+
+  hlineStyle(position: string) {
+    const coords = this.getCoords(position);
+
+    let backgroundSize = '';
+    let backgroundPos = '';
+
+    if (coords.y === 0) {
+      backgroundSize = '50% 2px';
+      backgroundPos = 'right';
+    } else if (coords.y === this.gridSize - 1) {
+      backgroundSize = '50% 2px';
+      backgroundPos = 'left';
+    } else {
+      backgroundSize = '100% 2px';
+      backgroundPos = 'center';
+    }
+    
+    return {'background-size':backgroundSize, 'background-position':backgroundPos};
+  }
+
 }
