@@ -83,4 +83,8 @@ export class BoardComponent implements OnInit {
     return {'background-size':backgroundSize, 'background-position':backgroundPos};
   }
 
+  isStarPoint(position: string): boolean {
+    return position === '4,4' || position === '2,2' || position === '2,6' || position === '6,2' || position === '6,6'
+  }
+
 }

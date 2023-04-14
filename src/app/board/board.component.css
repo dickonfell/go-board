@@ -58,3 +58,15 @@
     top: 50%;
     transform: translate(0, -50%);
 }
+
+.star-point {
+    width: 15%;
+    height: 15%;
+    border-radius: 50%;
+    background: black;
+    
+    /* Center Vertically */
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+}
