@@ -1,5 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 
+export interface IGridPosition {
+  x: number;
+  y: number;
+}
+
 @Component({
   selector: 'app-board',
   templateUrl: './board.component.html',
@@ -10,7 +15,7 @@ export class BoardComponent implements OnInit {
   gridSize: number = 9;
   grid: Map<string, boolean | undefined>;
   
-  currentPlayer: boolean = false; // false for black, true for white
+  currentPlayer: boolean; // false for black, true for white
 
   constructor() {
   }
@@ -18,19 +23,15 @@ export class BoardComponent implements OnInit {
   ngOnInit(): void {
     this.resetBoard();
   }
-
-  placeStone(position: string, player: boolean) {
-    if (this.grid.get(position) === undefined) {
-      this.grid.set(position, player);
-      this.currentPlayer = !this.currentPlayer;
-    }
-  }
-
+  
+  /**
+   * Sets grid to empty start state, and current player to black.
+   */
   resetBoard() {
     let startGrid = new Map();
     for (let i = 0; i < this.gridSize; i++) {
       for (let j = 0; j < this.gridSize; j++) {
-        const gridSquare = `${i},${j}`
+        const gridSquare = `${i},${j}`;
         startGrid.set(gridSquare, undefined);
       }
     }
@@ -38,21 +39,66 @@ export class BoardComponent implements OnInit {
     this.currentPlayer = false;
   }
 
-  getCoords(position: string): {x: number, y: number} {
+  placeStone(position: string, player: boolean) {
+    if (this.grid.get(position) === undefined) {
+      this.grid.set(position, player);
+      this.currentPlayer = !this.currentPlayer;
+      // check for captures
+      this.grid.forEach(
+        (player, position) => {
+          if (player !== undefined && this.isCaptured(position)) {
+            // remove stone from position
+            this.grid.set(position, undefined);
+          }
+        }
+      )
+    }
+  }
+
+  isCaptured(position: string): boolean {
+    const coords: IGridPosition = this.getCoords(position);
+
+    let liberties: IGridPosition[] = [];
+    if (coords.x - 1 >= 0) {
+      liberties.push({x: coords.x-1, y: coords.y});
+    }
+    if (coords.x + 1 <= this.gridSize - 1) {
+      liberties.push({x: coords.x + 1, y: coords.y});
+    }
+    if (coords.y - 1 >= 0) {
+      liberties.push({x: coords.x, y: coords.y - 1});
+    }
+    if (coords.y + 1 <= this.gridSize - 1) {
+      liberties.push({x: coords.x, y: coords.y + 1});
+    }
+
+    let capturedLiberties = 0;
+    for (let liberty of liberties) {
+      const libertyPosition = `${liberty.y},${liberty.x}`;
+      if (this.grid.get(libertyPosition) === !this.grid.get(position)) {
+        capturedLiberties = capturedLiberties + 1;
+      }
+    }
+
+    return capturedLiberties === liberties.length;
+  }
+
+
+  getCoords(position: string): IGridPosition {
     const coords = position.split(',');
-    return {x: Number(coords[0]), y: Number(coords[1])};
+    return {x: Number(coords[1]), y: Number(coords[0])}; // flipped cos coordinates are annoying
   }
 
   vlineStyle(position: string) {
-    const coords = this.getCoords(position);
+    const coords: IGridPosition = this.getCoords(position);
 
     let backgroundSize = '';
     let backgroundPos = '';
 
-    if (coords.x === 0) {
+    if (coords.y === 0) {
       backgroundSize = '2px 50%';
       backgroundPos = 'bottom';
-    } else if (coords.x === this.gridSize - 1) {
+    } else if (coords.y === this.gridSize - 1) {
       backgroundSize = '2px 50%';
       backgroundPos = 'top';
     } else {
@@ -64,15 +110,15 @@ export class BoardComponent implements OnInit {
   }
 
   hlineStyle(position: string) {
-    const coords = this.getCoords(position);
+    const coords: IGridPosition = this.getCoords(position);
 
     let backgroundSize = '';
     let backgroundPos = '';
 
-    if (coords.y === 0) {
+    if (coords.x === 0) {
       backgroundSize = '50% 2px';
       backgroundPos = 'right';
-    } else if (coords.y === this.gridSize - 1) {
+    } else if (coords.x === this.gridSize - 1) {
       backgroundSize = '50% 2px';
       backgroundPos = 'left';
     } else {
