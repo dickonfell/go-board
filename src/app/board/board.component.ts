@@ -66,6 +66,13 @@ export class BoardComponent implements OnInit {
         // if there is a player in current position
         if (player !== undefined) {
           // check if player part of group
+          let group: Set<string> = new Set();
+          group.add(checkingPosition);
+          const finalGroup = this.getGroup(checkingPosition, group);
+          if (finalGroup.size > 1) {
+            console.log('stone at', checkingPosition, 'is in a group of', finalGroup.size)
+            // check if group captured
+          }
           // check if individual position captured
           if (this.isCaptured(checkingPosition, !player)) {
             // remove stone from position
@@ -82,8 +89,31 @@ export class BoardComponent implements OnInit {
    * Check if piece in grid position is part of a group
    * @param position 
    */
-  inGroup(position: string) {
+  getGroup(position: string, group: Set<string>): Set<string> {
+
     const coords: IGridPosition = this.getCoords(position);
+    const player = this.grid.get(position); // player in initial position
+
+    // check adjacent intersections for stones of the same colour
+    const adjacentIntersections = this.getAdjacentIntersections(coords);
+
+    for (let intersection of adjacentIntersections) {
+      const intersectionString = this.getCoordinateString(intersection);
+      // if intersection not already in group
+      if (!group.has(intersectionString)) {
+        // if intersection occupied by stone of same colour
+        if (this.grid.get(intersectionString) === player) {
+          // add intersection to group
+          group.add(intersectionString);
+          // add group of this intersection to group
+          this.getGroup(intersectionString, group).forEach(position => {
+            group.add(position);
+          });
+        }
+      }
+    }
+
+    return group;
   }
 
   /**
@@ -94,15 +124,17 @@ export class BoardComponent implements OnInit {
   isCaptured(position: string, player: boolean): boolean {
     const coords: IGridPosition = this.getCoords(position);
 
-    let liberties = this.getAdjacentIntersections(coords);
+    const liberties = this.getAdjacentIntersections(coords);
 
     let capturedLiberties = 0;
+    // count adjacent intersections occupied by opposite player
     for (let liberty of liberties) {
       if (this.grid.get(this.getCoordinateString(liberty)) === player) {
         capturedLiberties = capturedLiberties + 1;
       }
     }
 
+    // stone is captured if all adjacent intersections occupied by opposite player
     return capturedLiberties === liberties.length;
   }
 
