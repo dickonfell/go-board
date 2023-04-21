@@ -1,9 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-
-export interface IGridPosition {
-  x: number;
-  y: number;
-}
+import { GridPosition } from '../coordinate-models';
 
 @Component({
   selector: 'app-board',
@@ -102,19 +98,19 @@ export class BoardComponent implements OnInit {
   }
 
   /**
-   * Check if piece in grid position is part of a group
+   * Gets a group of stones from an initial input group
    * @param position 
    */
   getGroup(position: string, group: Set<string>): Set<string> {
 
-    const coords: IGridPosition = this.getCoords(position);
+    const coords: GridPosition = GridPosition.fromCoordinateString(position);
     const player = this.grid.get(position); // player in initial position
 
     // check adjacent intersections for stones of the same colour
-    const adjacentIntersections = this.getAdjacentIntersections(coords);
+    const adjacentIntersections = coords.getAdjacentIntersections(this.gridSize);
 
     for (let intersection of adjacentIntersections) {
-      const intersectionString = this.getCoordinateString(intersection);
+      const intersectionString = intersection.toCoordinateString();
       // if intersection not already in group
       if (!group.has(intersectionString)) {
         // if intersection occupied by stone of same colour
@@ -133,7 +129,7 @@ export class BoardComponent implements OnInit {
   }
 
   /**
-   * Check if a group of stones has been captured by a player
+   * Check if a group of stones has been captured
    * @param position 
    * @returns 
    */
@@ -143,12 +139,12 @@ export class BoardComponent implements OnInit {
 
     // loop over positions of stones in group
     group.forEach(position => {
-      const coords: IGridPosition = this.getCoords(position);
+      const coords: GridPosition = GridPosition.fromCoordinateString(position);
 
       // loop over intersections adjacent to position
-      const adjacentIntersections = this.getAdjacentIntersections(coords);
+      const adjacentIntersections = coords.getAdjacentIntersections(this.gridSize);
       for (let intersection of adjacentIntersections) {
-        const intersectionString = this.getCoordinateString(intersection);
+        const intersectionString = intersection.toCoordinateString();
         // add intersection to set of liberties if it's unoccupied
         if (this.grid.get(intersectionString) === undefined) {
           liberties.add(intersectionString);
@@ -166,14 +162,14 @@ export class BoardComponent implements OnInit {
    * @returns 
    */
   isCaptured(position: string, player: boolean): boolean {
-    const coords: IGridPosition = this.getCoords(position);
+    const coords: GridPosition = GridPosition.fromCoordinateString(position);
 
-    const liberties = this.getAdjacentIntersections(coords);
+    const liberties = coords.getAdjacentIntersections(this.gridSize);
 
     let capturedLiberties = 0;
     // count adjacent intersections occupied by opposite player
     for (let liberty of liberties) {
-      if (this.grid.get(this.getCoordinateString(liberty)) === player) {
+      if (this.grid.get(liberty.toCoordinateString()) === player) {
         capturedLiberties = capturedLiberties + 1;
       }
     }
@@ -183,55 +179,12 @@ export class BoardComponent implements OnInit {
   }
 
   /**
-   * Get coordinates of the adjacent intersections of a given position
-   * @param coordinates IGridPosition {x: number, y: number}
-   * @returns IGridPosition[] (there can be 2, 3 or 4)
-   */
-  getAdjacentIntersections(coordinates: IGridPosition): IGridPosition[] {
-    let adjacentIntersections: IGridPosition[] = [];
-
-    if (coordinates.x - 1 >= 0) {
-      adjacentIntersections.push({x: coordinates.x-1, y: coordinates.y});
-    }
-    if (coordinates.x + 1 <= this.gridSize - 1) {
-      adjacentIntersections.push({x: coordinates.x + 1, y: coordinates.y});
-    }
-    if (coordinates.y - 1 >= 0) {
-      adjacentIntersections.push({x: coordinates.x, y: coordinates.y - 1});
-    }
-    if (coordinates.y + 1 <= this.gridSize - 1) {
-      adjacentIntersections.push({x: coordinates.x, y: coordinates.y + 1});
-    }
-
-    return adjacentIntersections;
-  }
-
-  /**
-   * Utility function to convert string of coordinates to object
-   * @param position 'x,y'
-   * @returns IGridPosition {x: number, y: number}
-   */
-  getCoords(position: string): IGridPosition {
-    const coords = position.split(',');
-    return {x: Number(coords[1]), y: Number(coords[0])}; // flipped cos coordinates are annoying
-  }
-
-  /**
-   * Utility function to convert coordinate object to coordinate string
-   * @param coords IGridPosition {x: number, y: number}
-   * @returns 'x,y'
-   */
-  getCoordinateString(coords: IGridPosition): string {
-    return `${coords.y},${coords.x}`;
-  }
-
-  /**
    * Get style parameters for vertical line segments depending on grid position
    * @param position 
    * @returns 
    */
   vlineStyle(position: string) {
-    const coords: IGridPosition = this.getCoords(position);
+    const coords: GridPosition = GridPosition.fromCoordinateString(position);
 
     let backgroundSize = '';
     let backgroundPos = '';
@@ -256,7 +209,7 @@ export class BoardComponent implements OnInit {
    * @returns 
    */
   hlineStyle(position: string) {
-    const coords: IGridPosition = this.getCoords(position);
+    const coords: GridPosition = GridPosition.fromCoordinateString(position);
 
     let backgroundSize = '';
     let backgroundPos = '';
