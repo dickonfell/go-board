@@ -20,16 +20,20 @@ export class GridPosition implements IGridPosition {
        * @returns 'x,y'
        */
     public toCoordinateString(): string {
-        return `${this.y},${this.x}`;
+        return `${this.x},${this.y}`;
     }
 
     public static fromCoordinateString(position: string): GridPosition {
         const coords = position.split(',');
-        return new GridPosition(Number(coords[1]), Number(coords[0])) // flipped cos coordinates are annoying
+        return new GridPosition(
+            // flipped cos coordinates are annoying
+            Number(coords[1]), 
+            Number(coords[0]),
+        )
     }
 
     /**
-     * Get coordinates of the adjacent intersections of a given position
+     * Get coordinates of the adjacent intersections of this GridPosition
      * @param gridSize Max dimension of grid
      * @returns an array of GridPositions (there can be 2, 3 or 4)
      */
