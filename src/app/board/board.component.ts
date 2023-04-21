@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { GridPosition } from '../coordinate-models';
+import { GridPosition } from '../grid-position';
 
 @Component({
   selector: 'app-board',
