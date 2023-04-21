@@ -1,6 +1,6 @@
 
 <div class="grid-container">
-    <div *ngFor="let item of grid | keyvalue" class="grid-item" (click)="placeStone(item.key)">
+    <div *ngFor="let item of board.grid | keyvalue" class="grid-item" (click)="placeStone(item.key)">
         <div class="vertical-line" [ngStyle]="vlineStyle(item.key)">
             <div class="horizontal-line" [ngStyle]="hlineStyle(item.key)">
                 <div *ngIf="item.value === undefined && isStarPoint(item.key)" class="star-point"></div>
