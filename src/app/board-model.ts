@@ -3,16 +3,27 @@ import { GridPosition } from "./grid-position";
 export interface IGroup {
     player: boolean;
     positions: Set<string>;
-    // liberties: Set<string>;
+    liberties: Set<string>;
 }
 
 export class Group implements IGroup {
 
     player: boolean;
     positions: Set<string>;
-    // liberties: Set<string>;
+    liberties: Set<string>;
 
-    constructor() {}
+    constructor(player: boolean, positions: Set<string>, liberties: Set<string>) {
+        this.player = player;
+        this.positions = positions;
+        this.liberties = liberties;
+    }
+
+    contains(position: string): boolean {
+        if (this.positions.has(position)) {
+            return true;
+        }
+        return false;
+    }
 }
 
 
@@ -41,6 +52,7 @@ export class Board implements IBoard {
         }
         this.size = gridSize;
         this.grid = startGrid;
+        this.groups = [];
         this.currentPlayer = false;
     }
 
@@ -61,47 +73,70 @@ export class Board implements IBoard {
 
         console.log('placing stone...')
 
-        // place stone and swap current player
+        // place stone
         this.grid.set(position, this.currentPlayer);
+
+        // re-calculate groups
+        this.calculateGroups(position);
+
+        // swap current player
         this.currentPlayer = !this.currentPlayer;
 
-        // store groups on board at each turn
-        let groups: Set<string>[] = [];
-        
-        // check for captures and remove
-        this.grid.forEach(
-        (player, checkingPosition) => {
-            // if there is a player in current position
-            if (player !== undefined) {
-            // check if position is part of a found group
-            let inGroup: boolean = false;
-            groups.map(group => {
-                if (group.has(checkingPosition)) {
-                inGroup = true;
-                }
-            });
-
-            // if position not in a found group, find group
-            if (!inGroup) {
-                let initialGroup: Set<string> = new Set();
-                initialGroup.add(checkingPosition);
-                const group = this.getGroup(checkingPosition, initialGroup);
-    
-                console.log('stone at', checkingPosition, 'is in a group of', group.size);
-
-                // check if group captured
-                if (this.isGroupCaptured(group)) {
-                // remove group
-                console.log('group captured');
-                group.forEach(groupPosition => this.grid.set(groupPosition, undefined));
-                } else {
-                // save group to list of groups
-                groups.push(group);
-                }
+        // remove groups with no liberties
+        let index = 0;
+        this.groups.forEach(group => {
+            if (group.liberties.size === 0) {
+                this.removeGroup(group);
+                this.groups.splice(index,1);
             }
+            index = index + 1;
+        });
+
+        console.log(this.groups);
+    }
+
+    calculateGroups(position: string) {
+        // find group for stone in given position (add to existing or make new one)
+        let groupFound: boolean = false;
+
+        this.groups.forEach(group => {
+            //  - if position in liberty of an existing group, add to group
+            if (group.liberties.has(position) && group.player === this.currentPlayer) {
+                console.log('adding to existing group')
+                group.positions.add(position);
+                group.liberties = this.groupLiberties(group.positions);
+
+                groupFound = true;
             }
+        });
+
+        this.groups.forEach(group => {
+            group.liberties = this.groupLiberties(group.positions);
+        })
+
+        if (!groupFound) {
+            console.log('making new group')
+            //  - else make singleton group
+            const positions: Set<string> = new Set();
+            positions.add(position);
+            this.groups.push(new Group(this.currentPlayer, positions, this.groupLiberties(positions)));
         }
-        );
+    }
+
+    removeGroup(group: Group) {
+        group.positions.forEach(position => {
+            this.grid.set(position, undefined);
+        });
+    }
+
+    inGroup(position: string): boolean {
+        let inGroup: boolean = false;
+        this.groups.map(group => {
+            if (group.contains(position)) {
+                inGroup = true;
+            }
+        });
+        return inGroup;
     }
 
     isOccupied(position: string): boolean {
@@ -162,6 +197,33 @@ export class Board implements IBoard {
     }
 
     /**
+     * Find liberties of a group
+     * @param group 
+     * @returns 
+     */
+    groupLiberties(positions: Set<string>): Set<string> {
+        let liberties: Set<string> = new Set();
+
+        // loop over positions of stones in group
+        positions.forEach(position => {
+            const coords: GridPosition = GridPosition.fromCoordinateString(position);
+
+            // loop over intersections adjacent to position
+            const adjacentIntersections = coords.getAdjacentIntersections(this.size);
+            for (let intersection of adjacentIntersections) {
+                const intersectionString = intersection.toCoordinateString();
+                // add intersection to set of liberties if it's unoccupied
+                if (this.grid.get(intersectionString) === undefined) {
+                    liberties.add(intersectionString);
+                }
+            }
+        });
+
+        // group is captured if it has no liberties
+        return liberties;
+    }
+
+    /**
      * Check if a group of stones has been captured
      * @param position 
      * @returns 
@@ -172,17 +234,17 @@ export class Board implements IBoard {
 
         // loop over positions of stones in group
         group.forEach(position => {
-        const coords: GridPosition = GridPosition.fromCoordinateString(position);
+            const coords: GridPosition = GridPosition.fromCoordinateString(position);
 
-        // loop over intersections adjacent to position
-        const adjacentIntersections = coords.getAdjacentIntersections(this.size);
-        for (let intersection of adjacentIntersections) {
-            const intersectionString = intersection.toCoordinateString();
-            // add intersection to set of liberties if it's unoccupied
-            if (this.grid.get(intersectionString) === undefined) {
-                liberties.add(intersectionString);
+            // loop over intersections adjacent to position
+            const adjacentIntersections = coords.getAdjacentIntersections(this.size);
+            for (let intersection of adjacentIntersections) {
+                const intersectionString = intersection.toCoordinateString();
+                // add intersection to set of liberties if it's unoccupied
+                if (this.grid.get(intersectionString) === undefined) {
+                    liberties.add(intersectionString);
+                }
             }
-        }
         });
 
         // group is captured if it has no liberties
