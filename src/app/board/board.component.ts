@@ -13,7 +13,7 @@ export interface IGridPosition {
 export class BoardComponent implements OnInit {
 
   gridSize: number = 9;
-  grid: Map<string, boolean | undefined>;
+  grid: Map<string, boolean | undefined>; // coordinate 'x,y' to player (white: true, black: false, empty: undefined) map
   
   currentPlayer: boolean; // false for black, true for white
 
@@ -39,10 +39,10 @@ export class BoardComponent implements OnInit {
     this.currentPlayer = false;
   }
 
-  placeStone(position: string, player: boolean) {
+  placeStone(position: string) {
     if (this.grid.get(position) === undefined && !this.isCaptured(position)) {
       // place stone and swap current player
-      this.grid.set(position, player);
+      this.grid.set(position, this.currentPlayer);
       this.currentPlayer = !this.currentPlayer;
 
       // check for captures and remove
@@ -58,6 +58,7 @@ export class BoardComponent implements OnInit {
   }
 
   isCaptured(position: string): boolean {
+    // Check if a single grid position has been captured
     const coords: IGridPosition = this.getCoords(position);
 
     let liberties: IGridPosition[] = [];
@@ -87,11 +88,13 @@ export class BoardComponent implements OnInit {
 
 
   getCoords(position: string): IGridPosition {
+    // Utility function to convert 'x,y' string of coordinates to {x: number, y: number} object
     const coords = position.split(',');
     return {x: Number(coords[1]), y: Number(coords[0])}; // flipped cos coordinates are annoying
   }
 
   vlineStyle(position: string) {
+    // Get style parameters for vertical line segments depending on grid position
     const coords: IGridPosition = this.getCoords(position);
 
     let backgroundSize = '';
@@ -112,6 +115,7 @@ export class BoardComponent implements OnInit {
   }
 
   hlineStyle(position: string) {
+    // Get style parameters for horizontal line segments depending on grid position
     const coords: IGridPosition = this.getCoords(position);
 
     let backgroundSize = '';
