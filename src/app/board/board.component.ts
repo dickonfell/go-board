@@ -76,7 +76,7 @@ export class BoardComponent implements OnInit {
                 inGroup = true;
               }
             })
-          })
+          });
 
           // if position not in a found group, find group
           if (!inGroup) {
@@ -84,33 +84,21 @@ export class BoardComponent implements OnInit {
             initialGroup.add(checkingPosition);
             const group = this.getGroup(checkingPosition, initialGroup);
   
-            // if group is a group (ie. contains > 1 stone)
-            if (group.size > 1) {
-              console.log('stone at', checkingPosition, 'is in a group of', group.size)
-  
-              // check if group captured
-              if (this.isGroupCaptured(group, !player)) {
-                // remove group
-                console.log('group captured');
-                group.forEach(groupPosition => this.grid.set(groupPosition, undefined));
-              } else {
-                // save group to list of groups
-                groups.push(group);
-              }
+            console.log('stone at', checkingPosition, 'is in a group of', group.size);
+
+            // check if group captured
+            if (this.isGroupCaptured(group)) {
+              // remove group
+              console.log('group captured');
+              group.forEach(groupPosition => this.grid.set(groupPosition, undefined));
+            } else {
+              // save group to list of groups
+              groups.push(group);
             }
-          }
-
-
-          // check if individual position captured
-          if (this.isCaptured(checkingPosition, !player)) {
-            // remove stone from position
-            console.log('removing stone', checkingPosition)
-            this.grid.set(checkingPosition, undefined);
           }
         }
       }
-      )
-      
+    );
   }
 
   /**
@@ -149,13 +137,12 @@ export class BoardComponent implements OnInit {
    * @param position 
    * @returns 
    */
-  isGroupCaptured(positions: Set<string>, player: boolean): boolean {
+  isGroupCaptured(group: Set<string>): boolean {
     // find liberties of group
-    // store liberties in a set
     let liberties: Set<string> = new Set();
 
     // loop over positions of stones in group
-    positions.forEach(position => {
+    group.forEach(position => {
       const coords: IGridPosition = this.getCoords(position);
 
       // loop over intersections adjacent to position
@@ -169,6 +156,7 @@ export class BoardComponent implements OnInit {
       }
     });
 
+    // group is captured if it has no liberties
     return liberties.size === 0;
   }
 
