@@ -26,9 +26,8 @@ export class GridPosition implements IGridPosition {
     public static fromCoordinateString(position: string): GridPosition {
         const coords = position.split(',');
         return new GridPosition(
-            // flipped cos coordinates are annoying
-            Number(coords[1]), 
             Number(coords[0]),
+            Number(coords[1]), 
         )
     }
 

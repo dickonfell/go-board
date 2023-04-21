@@ -67,11 +67,9 @@ export class BoardComponent implements OnInit {
           // check if position is part of a found group
           let inGroup: boolean = false;
           groups.map(group => {
-            group.forEach(pos => {
-              if (pos === checkingPosition) {
-                inGroup = true;
-              }
-            })
+            if (group.has(checkingPosition)) {
+              inGroup = true;
+            }
           });
 
           // if position not in a found group, find group
@@ -189,10 +187,10 @@ export class BoardComponent implements OnInit {
     let backgroundSize = '';
     let backgroundPos = '';
 
-    if (coords.y === 0) {
+    if (coords.x === 0) {
       backgroundSize = '2px 50%';
       backgroundPos = 'bottom';
-    } else if (coords.y === this.gridSize - 1) {
+    } else if (coords.x === this.gridSize - 1) {
       backgroundSize = '2px 50%';
       backgroundPos = 'top';
     } else {
@@ -214,10 +212,10 @@ export class BoardComponent implements OnInit {
     let backgroundSize = '';
     let backgroundPos = '';
 
-    if (coords.x === 0) {
+    if (coords.y === 0) {
       backgroundSize = '50% 2px';
       backgroundPos = 'right';
-    } else if (coords.x === this.gridSize - 1) {
+    } else if (coords.y === this.gridSize - 1) {
       backgroundSize = '50% 2px';
       backgroundPos = 'left';
     } else {
