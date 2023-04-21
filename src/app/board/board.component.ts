@@ -39,46 +39,66 @@ export class BoardComponent implements OnInit {
     this.currentPlayer = false;
   }
 
+  /** 
+   * Tries to place a stone at the given position
+   */
   placeStone(position: string) {
-    if (this.grid.get(position) === undefined && !this.isCaptured(position)) {
-      // place stone and swap current player
-      this.grid.set(position, this.currentPlayer);
-      this.currentPlayer = !this.currentPlayer;
+    // can't play in occupied position
+    if (this.grid.get(position) !== undefined) {
+      return;
+    }
 
-      // check for captures and remove
-      this.grid.forEach(
-        (player, position) => {
-          if (player !== undefined && this.isCaptured(position)) {
+    // can't self-capture
+    if (this.isCaptured(position, !this.currentPlayer)) {
+      console.log('position is captured, you cannot play here')
+      return;
+    }
+
+    console.log('placing stone...')
+
+    // place stone and swap current player
+    this.grid.set(position, this.currentPlayer);
+    this.currentPlayer = !this.currentPlayer;
+    
+    // check for captures and remove
+    this.grid.forEach(
+      (player, checkingPosition) => {
+        // if there is a player in current position
+        if (player !== undefined) {
+          // check if player part of group
+          // check if individual position captured
+          if (this.isCaptured(checkingPosition, !player)) {
             // remove stone from position
-            this.grid.set(position, undefined);
+            console.log('removing stone', checkingPosition)
+            this.grid.set(checkingPosition, undefined);
           }
         }
+      }
       )
-    }
+      
   }
 
-  isCaptured(position: string): boolean {
-    // Check if a single grid position has been captured
+  /**
+   * Check if piece in grid position is part of a group
+   * @param position 
+   */
+  inGroup(position: string) {
+    const coords: IGridPosition = this.getCoords(position);
+  }
+
+  /**
+   * Check if a single grid position has been captured by a player
+   * @param position 
+   * @returns 
+   */
+  isCaptured(position: string, player: boolean): boolean {
     const coords: IGridPosition = this.getCoords(position);
 
-    let liberties: IGridPosition[] = [];
-    if (coords.x - 1 >= 0) {
-      liberties.push({x: coords.x-1, y: coords.y});
-    }
-    if (coords.x + 1 <= this.gridSize - 1) {
-      liberties.push({x: coords.x + 1, y: coords.y});
-    }
-    if (coords.y - 1 >= 0) {
-      liberties.push({x: coords.x, y: coords.y - 1});
-    }
-    if (coords.y + 1 <= this.gridSize - 1) {
-      liberties.push({x: coords.x, y: coords.y + 1});
-    }
+    let liberties = this.getAdjacentIntersections(coords);
 
     let capturedLiberties = 0;
     for (let liberty of liberties) {
-      const libertyPosition = `${liberty.y},${liberty.x}`;
-      if (this.grid.get(libertyPosition) === !this.grid.get(position)) {
+      if (this.grid.get(this.getCoordinateString(liberty)) === player) {
         capturedLiberties = capturedLiberties + 1;
       }
     }
@@ -86,15 +106,55 @@ export class BoardComponent implements OnInit {
     return capturedLiberties === liberties.length;
   }
 
+  /**
+   * Get coordinates of the adjacent intersections of a given position
+   * @param coordinates IGridPosition {x: number, y: number}
+   * @returns IGridPosition[] (there can be 2, 3 or 4)
+   */
+  getAdjacentIntersections(coordinates: IGridPosition): IGridPosition[] {
+    let adjacentIntersections: IGridPosition[] = [];
 
+    if (coordinates.x - 1 >= 0) {
+      adjacentIntersections.push({x: coordinates.x-1, y: coordinates.y});
+    }
+    if (coordinates.x + 1 <= this.gridSize - 1) {
+      adjacentIntersections.push({x: coordinates.x + 1, y: coordinates.y});
+    }
+    if (coordinates.y - 1 >= 0) {
+      adjacentIntersections.push({x: coordinates.x, y: coordinates.y - 1});
+    }
+    if (coordinates.y + 1 <= this.gridSize - 1) {
+      adjacentIntersections.push({x: coordinates.x, y: coordinates.y + 1});
+    }
+
+    return adjacentIntersections;
+  }
+
+  /**
+   * Utility function to convert string of coordinates to object
+   * @param position 'x,y'
+   * @returns IGridPosition {x: number, y: number}
+   */
   getCoords(position: string): IGridPosition {
-    // Utility function to convert 'x,y' string of coordinates to {x: number, y: number} object
     const coords = position.split(',');
     return {x: Number(coords[1]), y: Number(coords[0])}; // flipped cos coordinates are annoying
   }
 
+  /**
+   * Utility function to convert coordinate object to coordinate string
+   * @param coords IGridPosition {x: number, y: number}
+   * @returns 'x,y'
+   */
+  getCoordinateString(coords: IGridPosition): string {
+    return `${coords.y},${coords.x}`;
+  }
+
+  /**
+   * Get style parameters for vertical line segments depending on grid position
+   * @param position 
+   * @returns 
+   */
   vlineStyle(position: string) {
-    // Get style parameters for vertical line segments depending on grid position
     const coords: IGridPosition = this.getCoords(position);
 
     let backgroundSize = '';
@@ -114,8 +174,12 @@ export class BoardComponent implements OnInit {
     return {'background-size':backgroundSize, 'background-position':backgroundPos};
   }
 
+  /**
+   * Get style parameters for horizontal line segments depending on grid position
+   * @param position 
+   * @returns 
+   */
   hlineStyle(position: string) {
-    // Get style parameters for horizontal line segments depending on grid position
     const coords: IGridPosition = this.getCoords(position);
 
     let backgroundSize = '';
