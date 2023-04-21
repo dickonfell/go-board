@@ -59,20 +59,48 @@ export class BoardComponent implements OnInit {
     // place stone and swap current player
     this.grid.set(position, this.currentPlayer);
     this.currentPlayer = !this.currentPlayer;
+
+    // store groups on board at each turn
+    let groups: Set<string>[] = [];
     
     // check for captures and remove
     this.grid.forEach(
       (player, checkingPosition) => {
         // if there is a player in current position
         if (player !== undefined) {
-          // check if player part of group
-          let group: Set<string> = new Set();
-          group.add(checkingPosition);
-          const finalGroup = this.getGroup(checkingPosition, group);
-          if (finalGroup.size > 1) {
-            console.log('stone at', checkingPosition, 'is in a group of', finalGroup.size)
-            // check if group captured
+          // check if position is part of a found group
+          let inGroup: boolean = false;
+          groups.map(group => {
+            group.forEach(pos => {
+              if (pos === checkingPosition) {
+                inGroup = true;
+              }
+            })
+          })
+
+          // if position not in a found group, find group
+          if (!inGroup) {
+            let initialGroup: Set<string> = new Set();
+            initialGroup.add(checkingPosition);
+            const group = this.getGroup(checkingPosition, initialGroup);
+  
+            // if group is a group (ie. contains > 1 stone)
+            if (group.size > 1) {
+              console.log('stone at', checkingPosition, 'is in a group of', group.size)
+  
+              // check if group captured
+              if (this.isGroupCaptured(group, !player)) {
+                // remove group
+                console.log('group captured');
+                group.forEach(groupPosition => this.grid.set(groupPosition, undefined));
+              } else {
+                // save group to list of groups
+                groups.push(group);
+              }
+            }
           }
+
+
           // check if individual position captured
           if (this.isCaptured(checkingPosition, !player)) {
             // remove stone from position
@@ -114,6 +142,34 @@ export class BoardComponent implements OnInit {
     }
 
     return group;
+  }
+
+  /**
+   * Check if a group of stones has been captured by a player
+   * @param position 
+   * @returns 
+   */
+  isGroupCaptured(positions: Set<string>, player: boolean): boolean {
+    // find liberties of group
+    // store liberties in a set
+    let liberties: Set<string> = new Set();
+
+    // loop over positions of stones in group
+    positions.forEach(position => {
+      const coords: IGridPosition = this.getCoords(position);
+
+      // loop over intersections adjacent to position
+      const adjacentIntersections = this.getAdjacentIntersections(coords);
+      for (let intersection of adjacentIntersections) {
+        const intersectionString = this.getCoordinateString(intersection);
+        // add intersection to set of liberties if it's unoccupied
+        if (this.grid.get(intersectionString) === undefined) {
+          liberties.add(intersectionString);
+        }
+      }
+    });
+
+    return liberties.size === 0;
   }
 
   /**
