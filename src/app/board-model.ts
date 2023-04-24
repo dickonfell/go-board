@@ -1,5 +1,6 @@
 import { GridPosition } from "./grid-position";
 
+
 export interface IGroup {
     player: boolean;
     positions: Set<string>;
